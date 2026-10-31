@@ -1,4 +1,7 @@
+"""Group files in a folder into subdirectories named after their extensions."""
+
 import pathlib
+import sys
 
 
 def sort_files_by_extension(path):
@@ -17,7 +20,23 @@ def sort_files_by_extension(path):
         f.rename(dst)
 
 
-if __name__ == "__main__":
-    input_path = input("Enter the path to the directory: ")
+def main(argv=None):
+    """Entry point.
+
+    Takes an optional path as the first CLI argument; when omitted it
+    prompts for the path interactively.
+    """
+    if argv is None:
+        argv = sys.argv[1:]
+
+    if argv:
+        input_path = argv[0]
+    else:
+        input_path = input("Enter the path to the directory: ")
+
     sort_files_by_extension(input_path)
     print("Files have been sorted by extension.")
+
+
+if __name__ == "__main__":
+    main()
