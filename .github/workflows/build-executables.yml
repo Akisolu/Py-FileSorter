@@ -7,6 +7,11 @@ on:
     tags:
       - "*"
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Optional release tag to attach the executables to
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -19,16 +24,21 @@ jobs:
         include:
           - runner: windows-latest
             artifact: py-filesorter-windows
-            executable: dist/py-filesorter.exe
+            binary: py-filesorter-windows
+            executable: dist/py-filesorter-windows.exe
           - runner: ubuntu-latest
             artifact: py-filesorter-linux
-            executable: dist/py-filesorter
+            binary: py-filesorter-linux
+            executable: dist/py-filesorter-linux
           - runner: macos-latest
             artifact: py-filesorter-macos
-            executable: dist/py-filesorter
+            binary: py-filesorter-macos
+            executable: dist/py-filesorter-macos
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.release_tag || github.ref }}
 
       - uses: astral-sh/setup-uv@v5
         with:
@@ -39,7 +49,7 @@ jobs:
         run: uv sync --no-dev
 
       - name: Build executable
-        run: uv run --with pyinstaller pyinstaller --noconfirm --clean --onefile --name py-filesorter --copy-metadata py-filesorter src/app_cli.py
+        run: uv run --with pyinstaller pyinstaller --noconfirm --clean --onefile --name "${{ matrix.binary }}" --copy-metadata py-filesorter src/app_cli.py
 
       - name: Upload executable
         uses: actions/upload-artifact@v4
@@ -48,3 +58,22 @@ jobs:
           path: ${{ matrix.executable }}
           if-no-files-found: error
           retention-days: 30
+
+  upload-release-assets:
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download platform executables
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Upload executables to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
+        run: gh release upload "$RELEASE_TAG" dist/* --clobber
