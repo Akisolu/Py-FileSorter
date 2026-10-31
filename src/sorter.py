@@ -13,8 +13,9 @@ def sort_files_by_extension(path):
 
         ext_dir.mkdir(exist_ok=True)
 
-        dst = ext_dir / f
+        dst = ext_dir / f.name  # Build the destination path
         f.rename(dst)
+
 
 if __name__ == "__main__":
     input_path = input("Enter the path to the directory: ")
