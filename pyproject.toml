@@ -1,6 +1,6 @@
 [project]
 name = "py-filesorter"
-version = "0.1.0"
+version = "1.0.0"
 description = "Py-FileSorter is a lightweight Python utility that organizes files into subdirectories based on their file extensions."
 readme = "README.md"
 authors = [
@@ -10,7 +10,7 @@ requires-python = ">=3.15"
 dependencies = []
 
 [project.scripts]
-py-filesorter = "sorter:main"
+py-filesorter = "app_cli:main"
 
 [build-system]
 requires = ["uv_build>=0.13.4,<0.14.0"]
@@ -26,7 +26,7 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--cov=sorter --cov-report=term-missing"
+addopts = "--cov=src --cov-report=term-missing"
 
 [tool.ruff]
 line-length = 88
