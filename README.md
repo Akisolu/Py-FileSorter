@@ -65,7 +65,7 @@ uv run py-filesorter
 ```
 
 ```text
-py-filesorter v1.1.0 — sort files in a folder into subfolders by extension.
+py-filesorter v1.1.1 — sort files in a folder into subfolders by extension.
 
 Quick guide:
   py-filesorter -d <directory>    sort the files of <directory>

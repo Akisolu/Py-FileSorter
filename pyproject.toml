@@ -1,6 +1,6 @@
 [project]
 name = "py-filesorter"
-version = "1.1.0"
+version = "1.1.1"
 description = "Py-FileSorter is a lightweight Python utility that organizes files into subdirectories based on their file extensions."
 readme = "README.md"
 authors = [

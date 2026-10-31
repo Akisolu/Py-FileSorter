@@ -27,7 +27,7 @@ def _version() -> str:
     try:
         return metadata.version("py-filesorter")
     except metadata.PackageNotFoundError:
-        return "0.1.0"
+        return "1.1.1"
 
 
 # SGR codes: (1) bold, (2) dim, (31) red, (32) green, (36) cyan, (33) yellow

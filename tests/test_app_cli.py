@@ -230,7 +230,7 @@ def test_version_falls_back_when_distribution_not_installed(monkeypatch, capsys)
     with pytest.raises(SystemExit):
         app_cli.main(["--version"])
 
-    assert "v0.1.0" in capsys.readouterr().out
+    assert "v1.1.1" in capsys.readouterr().out
 
 
 class FakeTty:
