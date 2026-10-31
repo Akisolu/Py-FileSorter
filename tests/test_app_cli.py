@@ -1,5 +1,6 @@
 """Tests for the ``app_cli`` command line interface."""
 
+import json
 import sys
 
 import pytest
@@ -15,6 +16,7 @@ def test_no_args_prints_mini_guide(capsys):
     assert "-d" in out
     assert "--version, -v" in out
     assert "--help, -h" in out
+    assert "--json" in out
 
 
 @pytest.mark.parametrize("flag", ["--version", "-v"])
@@ -78,6 +80,133 @@ def test_dir_pointing_at_a_file_returns_error(tmp_path, capsys):
 
     assert rc == 2
     assert "is not a directory" in capsys.readouterr().err
+
+
+def test_json_result_reports_moves_and_extensionless_files(tmp_path, capsys):
+    (tmp_path / "photo.jpg").write_text("1", encoding="utf-8")
+    (tmp_path / "README").write_text("2", encoding="utf-8")
+
+    rc = app_cli.main(["--dir", str(tmp_path), "--json"])
+
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    assert rc == 0
+    assert captured.err == ""
+    assert "\x1b[" not in captured.out
+    assert payload == {
+        "status": "completed",
+        "directory": str(tmp_path),
+        "summary": {"moved": 1, "skipped": 1},
+        "moved": [
+            {
+                "source": str(tmp_path / "photo.jpg"),
+                "destination": str(tmp_path / "jpg" / "photo.jpg"),
+            }
+        ],
+        "skipped": [{"path": str(tmp_path / "README"), "reason": "no_extension"}],
+    }
+
+
+def test_json_result_reports_collisions_as_warnings(tmp_path, capsys):
+    (tmp_path / "photo.jpg").write_text("new", encoding="utf-8")
+    (tmp_path / "jpg").mkdir()
+    (tmp_path / "jpg" / "photo.jpg").write_text("old", encoding="utf-8")
+
+    rc = app_cli.main(["--dir", str(tmp_path), "--json"])
+
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    assert rc == 0
+    assert captured.err == ""
+    assert payload["status"] == "completed_with_warnings"
+    assert payload["summary"] == {"moved": 0, "skipped": 1}
+    assert payload["skipped"] == [
+        {
+            "path": str(tmp_path / "photo.jpg"),
+            "reason": "destination_exists",
+            "destination": str(tmp_path / "jpg" / "photo.jpg"),
+        }
+    ]
+
+
+def test_json_missing_directory_returns_structured_error(capsys):
+    rc = app_cli.main(["--json"])
+
+    captured = capsys.readouterr()
+    assert rc == 2
+    assert captured.err == ""
+    assert json.loads(captured.out) == {
+        "status": "error",
+        "error": {
+            "code": "missing_directory",
+            "message": "A directory is required. Use --dir DIR to choose one.",
+        },
+    }
+
+
+def test_json_invalid_directory_returns_structured_error(tmp_path, capsys):
+    missing = tmp_path / "missing-dir"
+
+    rc = app_cli.main(["--dir", str(missing), "--json"])
+
+    captured = capsys.readouterr()
+    assert rc == 2
+    assert captured.err == ""
+    assert json.loads(captured.out) == {
+        "status": "error",
+        "error": {
+            "code": "not_a_directory",
+            "message": f"'{missing}' is not a directory",
+            "path": str(missing),
+        },
+    }
+
+
+def test_json_filesystem_error_returns_failure_status(tmp_path, monkeypatch, capsys):
+    def fail(_path):
+        raise PermissionError("permission denied")
+
+    monkeypatch.setattr(app_cli.sorter, "sort_files_by_extension", fail)
+
+    rc = app_cli.main(["--dir", str(tmp_path), "--json"])
+
+    captured = capsys.readouterr()
+    assert rc == 1
+    assert captured.err == ""
+    assert json.loads(captured.out) == {
+        "status": "error",
+        "error": {
+            "code": "filesystem_error",
+            "message": "permission denied",
+            "partial_changes_possible": True,
+        },
+    }
+
+
+def test_human_summary_reports_moved_and_skipped_files(tmp_path, capsys):
+    (tmp_path / "photo.jpg").write_text("1", encoding="utf-8")
+    (tmp_path / "README").write_text("2", encoding="utf-8")
+
+    rc = app_cli.main(["--dir", str(tmp_path)])
+
+    captured = capsys.readouterr()
+    assert rc == 0
+    assert "Moved 1 file(s)." in captured.out
+    assert "Left 1 file(s) without an extension unchanged." in captured.out
+
+
+def test_human_summary_warns_on_collision(tmp_path, capsys):
+    (tmp_path / "photo.jpg").write_text("new", encoding="utf-8")
+    (tmp_path / "jpg").mkdir()
+    (tmp_path / "jpg" / "photo.jpg").write_text("old", encoding="utf-8")
+
+    rc = app_cli.main(["--dir", str(tmp_path)])
+
+    captured = capsys.readouterr()
+    assert rc == 0
+    assert "No files were moved" in captured.out
+    assert "warning:" in captured.err
+    assert "already exists" in captured.err
 
 
 def test_argv_defaults_to_sys_argv(tmp_path, monkeypatch):
