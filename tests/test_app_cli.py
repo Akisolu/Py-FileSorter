@@ -1,5 +1,7 @@
 """Tests for the ``app_cli`` command line interface."""
 
+import sys
+
 import pytest
 
 import app_cli
@@ -20,7 +22,22 @@ def test_version_flag(flag, capsys):
     with pytest.raises(SystemExit) as exc:
         app_cli.main([flag])
     assert exc.value.code == 0
-    assert app_cli.PROG in capsys.readouterr().out
+    assert "v" in capsys.readouterr().out
+
+
+def test_version_reads_distribution_metadata(monkeypatch, capsys):
+    from importlib import metadata
+
+    monkeypatch.setattr(
+        metadata,
+        "version",
+        lambda name: "2.7.1" if name == "py-filesorter" else "err",
+    )
+
+    with pytest.raises(SystemExit):
+        app_cli.main(["--version"])
+
+    assert "v2.7.1" in capsys.readouterr().out
 
 
 def test_dir_flag_sorts_files(tmp_path, capsys):
@@ -85,3 +102,58 @@ def test_version_falls_back_when_distribution_not_installed(monkeypatch, capsys)
         app_cli.main(["--version"])
 
     assert "v0.1.0" in capsys.readouterr().out
+
+
+class FakeTty:
+    def isatty(self):
+        return True
+
+
+class FakeNotTty:
+    def isatty(self):
+        return False
+
+
+def test_paint_wraps_in_ansi_only_when_enabled():
+    assert app_cli.paint("hi", "31", True) == "\x1b[31mhi\x1b[0m"
+    assert app_cli.paint("hi", "31", False) == "hi"
+
+
+def test_use_color_tty_and_no_color(monkeypatch):
+    monkeypatch.delenv("NO_COLOR", raising=False)
+    assert app_cli.use_color(FakeTty()) is True
+    assert app_cli.use_color(FakeNotTty()) is False
+
+    monkeypatch.setenv("NO_COLOR", "1")
+    assert app_cli.use_color(FakeTty()) is False
+
+
+def test_mini_guide_prints_plain_text_without_tty(capsys):
+    rc = app_cli.main([])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "\x1b[" not in out
+    assert "Quick guide:" in out
+
+
+def test_mini_guide_prints_colors_when_tty(monkeypatch):
+    monkeypatch.setattr("colorama.just_fix_windows_console", lambda: None)
+    monkeypatch.delenv("NO_COLOR", raising=False)
+    chunks = []
+
+    class StreamRecorder:
+        def write(self, text):
+            chunks.append(text)
+            return len(text)
+
+        def flush(self):
+            pass
+
+        def isatty(self):
+            return True
+
+    monkeypatch.setattr(sys, "stdout", StreamRecorder())
+
+    assert app_cli.main([]) == 0
+    assert "\x1b[" in "".join(chunks)
+    assert "Quick guide:" in "".join(chunks)

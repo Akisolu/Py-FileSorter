@@ -7,7 +7,9 @@ authors = [
     { name = "Akisolu", email = "morillomiguel2707@gmail.com" }
 ]
 requires-python = ">=3.15"
-dependencies = []
+dependencies = [
+    "colorama>=0.4.6",
+]
 
 [project.scripts]
 py-filesorter = "app_cli:main"
@@ -22,6 +24,7 @@ dev = [
     "pytest>=9.2.0",
     "pytest-cov>=7.1.0",
     "ruff>=0.17.3",
+    "types-colorama>=0.4.15.20260508",
 ]
 
 [tool.pytest.ini_options]

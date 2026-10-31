@@ -9,6 +9,7 @@ editable install exposes that directory on ``sys.path``.
 Prefer ``import sorter`` in tests and local code.
 """
 
-from sorter import main, sort_files_by_extension
+from app_cli import main
+from sorter import sort_files_by_extension
 
 __all__ = ["main", "sort_files_by_extension"]
