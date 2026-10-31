@@ -119,7 +119,8 @@ src/
 └── py_filesorter/
     └── __init__.py       # packaging shim required by the build backend
 tests/
-└── test_app_cli.py       # CLI test suite (see tests/README.md)
+├── test_app_cli.py       # CLI tests
+└── test_sorter.py        # Sorting behavior tests
 ```
 
 ### Run the checks
@@ -127,7 +128,7 @@ tests/
 The repository ships `verify.py`, a small runner that executes every check with a final summary:
 
 ```shell
-python verify.py
+uv run python verify.py
 ```
 
 It runs, in order:
@@ -143,7 +144,7 @@ It runs, in order:
 uv run pytest
 ```
 
-Tests run with coverage enabled by default (`--cov=src --cov-report=term-missing`). The current suite (14 tests) sits at about 92% coverage. Details, conventions and planned test scope live in [`tests/README.md`](tests/README.md).
+Tests run with coverage enabled by default (`--cov=src --cov-report=term-missing`). The current suite has 22 tests and reports 94% total coverage in the current environment. Details, conventions and remaining planned test scope live in [`tests/README.md`](tests/README.md).
 
 ### Continuous Integration
 
@@ -170,10 +171,10 @@ GitHub Actions run on push to `main` and on pull requests:
 - The program **moves** files directly into subfolders; it does not copy them and there is no undo operation. Try it on a test folder first.
 - Existing subfolders are skipped. The program only sorts files directly inside the folder you provide.
 - Files with the same extension are placed in the same subfolder. For example, `photo.jpg` and `banner.jpg` both go into `jpg`.
-- Files without an extension (and dotfiles like `.gitignore`) are left in place.
-- If the destination already contains a file with the same name, the program fails and stops sorting.
+- Multi-extension names are filed under the last extension: `backup.tar.gz` goes into `gz`.
+- Files without an extension (and dotfiles like `.gitignore`) are left in place; no special folder is created for them.
+- If the destination folder already holds a file with the same name, the source file keeps its place, a warning is printed to stderr, and sorting continues with the remaining files.
 
 ## Roadmap
 
 - Graphical interface (`app_gui.py` slot is already reserved in the source tree).
-- Safer collisions on sort (suffix renames or skip-with-warning instead of failing).
