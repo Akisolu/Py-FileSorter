@@ -30,6 +30,32 @@ cd Py-FileSorter
 uv sync
 ```
 
+### Install with pip
+
+Create and activate a virtual environment, then install the project in editable mode:
+
+```shell
+python -m venv .venv
+```
+
+On Windows PowerShell:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+On macOS or Linux:
+
+```shell
+source .venv/bin/activate
+```
+
+```shell
+python -m pip install -e .
+```
+
+Afterwards the `py-filesorter` console script is available inside the activated environment and every run command below works the same way.
+
 ### Run the console script
 
 Running the executable without any flag prints a mini quick guide:
@@ -39,12 +65,12 @@ uv run py-filesorter
 ```
 
 ```text
-py-filesorter v1.0.0 — sort files in a folder into subfolders by extension.
+py-filesorter v1.1.0 — sort files in a folder into subfolders by extension.
 
 Quick guide:
   py-filesorter -d <directory>    sort the files of <directory>
-  py-filesorter --version, -v     show the version
-  py-filesorter --help, -h        show the full help
+  py-filesorter --version, -v  show the version
+  py-filesorter --help, -h     show the full help
 
 Example:
   py-filesorter -d C:\Users\you\Downloads
@@ -135,6 +161,9 @@ GitHub Actions run on push to `main` and on pull requests:
 - `pytest` + `pytest-cov` — test runner and coverage
 - `ruff` — lint and format
 - `mypy` — static type checking
+- `types-colorama` — type stubs for `mypy`
+
+`requirements.txt` is a pinned snapshot of the development environment for pip-only setups; the editable reference inside it uses `-e .` so it works from any checkout location.
 
 ## Notes and known limitations
 

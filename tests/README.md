@@ -12,11 +12,12 @@ It runs every test with coverage enabled out of the box:
 `[tool.pytest.ini_options]` in `pyproject.toml` sets
 `testpaths = ["tests"]` and the addopts `--cov=src --cov-report=term-missing`.
 
-For the quick-per-check variant the repository also ships `verificar.py`
-(runner for `ruff check`, `ruff format --check`, `mypy` and `pytest -q`):
+For the quick-per-check variant the repository also ships `verify.py`
+(colored runner for `ruff check`, `ruff format --check`, `mypy` and
+`pytest -q`):
 
 ```shell
-python verificar.py
+python verify.py
 ```
 
 ## Current snapshot
