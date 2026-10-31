@@ -57,19 +57,21 @@ def test_extensionless_files_and_dotfiles_stay_in_place(tmp_path):
     assert not (tmp_path / "jpg").exists() and not (tmp_path / "empty").exists()
 
 
-def test_collision_keeps_both_files_warns_and_continues(tmp_path, capsys):
+def test_collision_keeps_both_files_and_continues(tmp_path, capsys):
     (tmp_path / "photo.jpg").write_text("new", encoding="utf-8")
     (tmp_path / "jpg").mkdir()
     (tmp_path / "jpg" / "photo.jpg").write_text("old", encoding="utf-8")
     (tmp_path / "a.txt").write_text("x", encoding="utf-8")
 
-    sorter.sort_files_by_extension(tmp_path)  # must not raise
+    result = sorter.sort_files_by_extension(tmp_path)
 
     assert (tmp_path / "photo.jpg").is_file()  # source kept in place
     destination = tmp_path / "jpg" / "photo.jpg"
     assert destination.read_text(encoding="utf-8") == "old"  # untouched
     assert (tmp_path / "txt" / "a.txt").is_file()  # the rest of the batch carries on
-    assert "already exists" in capsys.readouterr().err
+    assert result.skipped[0].reason == "destination_exists"
+    assert result.skipped[0].destination == destination
+    assert capsys.readouterr().err == ""
 
 
 def test_missing_route_raises_an_error(tmp_path):
