@@ -1,0 +1,50 @@
+name: Build executables
+
+on:
+  release:
+    types: [published]
+  push:
+    tags:
+      - "*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-latest
+            artifact: py-filesorter-windows
+            executable: dist/py-filesorter.exe
+          - runner: ubuntu-latest
+            artifact: py-filesorter-linux
+            executable: dist/py-filesorter
+          - runner: macos-latest
+            artifact: py-filesorter-macos
+            executable: dist/py-filesorter
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.15"
+          enable-cache: true
+
+      - name: Install runtime dependencies
+        run: uv sync --no-dev
+
+      - name: Build executable
+        run: uv run --with pyinstaller pyinstaller --noconfirm --clean --onefile --name py-filesorter --copy-metadata py-filesorter src/app_cli.py
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.executable }}
+          if-no-files-found: error
+          retention-days: 30

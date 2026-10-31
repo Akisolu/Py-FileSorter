@@ -65,7 +65,7 @@ uv run py-filesorter
 ```
 
 ```text
-py-filesorter v1.1.0 — sort files in a folder into subfolders by extension.
+py-filesorter v1.1.1 — sort files in a folder into subfolders by extension.
 
 Quick guide:
   py-filesorter -d <directory>    sort the files of <directory>
@@ -192,7 +192,7 @@ Tests run with coverage enabled by default (`--cov=src --cov-report=term-missing
 
 ### Continuous Integration
 
-GitHub Actions run on push to `main` and on pull requests:
+Quality checks run on push to `main` and on pull requests:
 
 | Workflow | Check |
 | --- | --- |
@@ -200,6 +200,25 @@ GitHub Actions run on push to `main` and on pull requests:
 | `ruff-format.yml` | `ruff format --check` |
 | `mypy.yml` | `mypy .` |
 | `tests.yml` | `pytest -q` |
+| `build-executables.yml` | Build Windows, Linux, and macOS executables when a release is published, a tag is pushed, or manually dispatched |
+
+### Download standalone executables
+
+The **Build executables** workflow creates a standalone CLI executable for
+Windows, Linux, and macOS when a GitHub Release is published or a tag is pushed.
+To download one:
+
+1. Open the repository's **Actions** tab and select **Build executables**.
+2. Open the successful run for the release.
+3. Download the matching artifact: `py-filesorter-windows`,
+   `py-filesorter-linux`, or `py-filesorter-macos`. GitHub provides each
+   executable as a ZIP artifact.
+
+As an optional alternative, you can start a build without publishing a release:
+select **Build executables** in Actions, click **Run workflow**, choose a
+branch, and click **Run workflow**. Artifacts are available for 30 days. Each
+executable is built on its target operating system and is for that runner's
+architecture.
 
 ### Development tooling (via `uv sync --group dev`)
 
