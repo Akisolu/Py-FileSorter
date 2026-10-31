@@ -1,7 +1,6 @@
 """Group files in a folder into subdirectories named after their extensions."""
 
 import pathlib
-import sys
 
 
 def sort_files_by_extension(path):
