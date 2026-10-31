@@ -71,6 +71,7 @@ Quick guide:
   py-filesorter -d <directory>    sort the files of <directory>
   py-filesorter --version, -v  show the version
   py-filesorter --help, -h     show the full help
+  py-filesorter -d <directory> --json  write a machine-readable result
 
 Example:
   py-filesorter -d C:\Users\you\Downloads
@@ -104,6 +105,49 @@ uv run python src/app_cli.py -d <directory>
 ### Colors
 
 Output is colored on interactive terminals. Colors are disabled automatically when the output is piped or redirected, and can be turned off anywhere by setting the `NO_COLOR` environment variable.
+
+### Machine-readable output
+
+Use `--json` with `--dir` to write one JSON object to standard output instead
+of the human-readable summary:
+
+```shell
+uv run py-filesorter --dir C:\Users\you\Downloads --json
+```
+
+Successful results contain a `status`, the `directory`, counts in `summary`,
+and `moved` and `skipped` arrays. A skipped item has a `reason` of
+`no_extension` or `destination_exists`; conflicts also include the existing
+`destination`. For example:
+
+```json
+{
+  "status": "completed_with_warnings",
+  "directory": "C:\\Users\\you\\Downloads",
+  "summary": {
+    "moved": 1,
+    "skipped": 1
+  },
+  "moved": [
+    {
+      "source": "C:\\Users\\you\\Downloads\\photo.jpg",
+      "destination": "C:\\Users\\you\\Downloads\\jpg\\photo.jpg"
+    }
+  ],
+  "skipped": [
+    {
+      "path": "C:\\Users\\you\\Downloads\\README",
+      "reason": "no_extension"
+    }
+  ]
+}
+```
+
+In JSON mode, validation and filesystem errors are also emitted as JSON on
+standard output; standard error stays free of human-readable warnings. Exit
+codes are `0` for a completed sort, `1` for a filesystem failure, and `2` for
+an invalid or missing directory. A filesystem failure may occur after some
+files have already been moved; the error result reports this possibility.
 
 ## Development
 
@@ -144,7 +188,7 @@ It runs, in order:
 uv run pytest
 ```
 
-Tests run with coverage enabled by default (`--cov=src --cov-report=term-missing`). The current suite has 22 tests and reports 94% total coverage in the current environment. Details, conventions and remaining planned test scope live in [`tests/README.md`](tests/README.md).
+Tests run with coverage enabled by default (`--cov=src --cov-report=term-missing`). The current suite has 29 tests; the exact coverage can vary with the installed Python version. Details, conventions and remaining planned test scope live in [`tests/README.md`](tests/README.md).
 
 ### Continuous Integration
 
@@ -174,6 +218,7 @@ GitHub Actions run on push to `main` and on pull requests:
 - Multi-extension names are filed under the last extension: `backup.tar.gz` goes into `gz`.
 - Files without an extension (and dotfiles like `.gitignore`) are left in place; no special folder is created for them.
 - If the destination folder already holds a file with the same name, the source file keeps its place, a warning is printed to stderr, and sorting continues with the remaining files.
+- The default output is intended for people; add `--json` when another program needs to consume the result.
 
 ## Roadmap
 
