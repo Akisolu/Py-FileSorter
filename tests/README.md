@@ -83,14 +83,3 @@ outcomes (and one stderr rule), never internals.
 The CLI already validates `--dir` (missing path / non-directory → exit code
 `2`), so sorter-level errors only surface when other code calls
 `sort_files_by_extension` directly.
-
-## Planned scope
-
-1. Add direct CLI tests for `--help`/`-h` and verify invalid paths leave
-   stdout empty and do not alter files.
-2. Add sorter edge-case tests for mixed-case extensions (case behavior
-   differs between Windows and POSIX), names with spaces or Unicode,
-   re-running on an already sorted folder, and an empty directory.
-3. Add end-to-end smoke tests against the installed console script.
-4. Define and test the CLI contract if the reserved `app_gui.py` module is
-   implemented as a graphical interface.

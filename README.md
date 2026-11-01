@@ -239,7 +239,3 @@ on its target operating system and is for that runner's architecture.
 - Files without an extension (and dotfiles like `.gitignore`) are left in place; no special folder is created for them.
 - If the destination folder already holds a file with the same name, the source file keeps its place, a warning is printed to stderr, and sorting continues with the remaining files.
 - The default output is intended for people; add `--json` when another program needs to consume the result.
-
-## Roadmap
-
-- Graphical interface (`app_gui.py` slot is already reserved in the source tree).
