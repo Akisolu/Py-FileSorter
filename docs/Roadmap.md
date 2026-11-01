@@ -49,4 +49,4 @@ features for Py-FileSorter.
 
 - Avoid unnecessary external dependencies.
 - Keep the code thoroughly tested.
-- Maintain a clear separation between business logic and the CLI.
+- Maintain a clear separation between business logic and the CLI and GUI.
